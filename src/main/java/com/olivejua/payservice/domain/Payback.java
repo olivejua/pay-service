@@ -2,9 +2,11 @@ package com.olivejua.payservice.domain;
 
 import com.olivejua.payservice.domain.type.PaybackStatus;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
 public class Payback {
     private final Long id;
     private final Payment payment;
