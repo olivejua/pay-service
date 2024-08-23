@@ -1,4 +1,4 @@
-package com.olivejua.payservice.type;
+package com.olivejua.payservice.domain.type;
 
 public enum PaymentStatus {
     DONE,
