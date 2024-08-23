@@ -1,6 +1,6 @@
 package com.olivejua.payservice.controller.response;
 
-import com.olivejua.payservice.type.PaymentStatus;
+import com.olivejua.payservice.domain.type.PaymentStatus;
 
 import java.time.LocalDateTime;
 
