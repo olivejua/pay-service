@@ -38,10 +38,10 @@ public class UserEntity {
     private String accountNumber;
 
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 
     public static UserEntity from(User user) {
         UserEntity userEntity = new UserEntity();
@@ -52,8 +52,8 @@ public class UserEntity {
         userEntity.currentBalance = user.getCurrentBalance();
         userEntity.accountBank = user.getAccountBank();
         userEntity.accountNumber = user.getAccountNumber();
-        userEntity.created_at = user.getCreatedAt();
-        userEntity.updated_at = user.getUpdatedAt();
+        userEntity.createdAt = user.getCreatedAt();
+        userEntity.updatedAt = user.getUpdatedAt();
 
         return userEntity;
     }
