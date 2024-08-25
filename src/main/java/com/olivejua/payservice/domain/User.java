@@ -19,7 +19,7 @@ public class User {
     private final LocalDateTime updatedAt;
 
     @Builder
-    public User(Long id, String name, String email, UserStatus status, Long currentBalance, String accountBank, String accountNumber, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(Long id, String name, String email, UserStatus status, long currentBalance, String accountBank, String accountNumber, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.email = email;
