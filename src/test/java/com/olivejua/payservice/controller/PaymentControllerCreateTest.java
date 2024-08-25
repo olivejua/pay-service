@@ -4,6 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.olivejua.payservice.controller.request.PaymentCreateRequest;
+import com.olivejua.payservice.database.entity.PaymentEntity;
+import com.olivejua.payservice.database.repository.PaymentJpaRepository;
+import com.olivejua.payservice.domain.Payment;
+import com.olivejua.payservice.domain.User;
+import com.olivejua.payservice.domain.type.PaymentStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -11,15 +17,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Sql(scripts = {"/sql/user-repository-test-data.sql", "/sql/user-limit-repository-test-data.sql"},
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @AutoConfigureMockMvc
 @SpringBootTest
 class PaymentControllerCreateTest {
@@ -27,12 +37,20 @@ class PaymentControllerCreateTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private PaymentJpaRepository paymentJpaRepository;
+
     @BeforeEach
     void setUp() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.objectMapper = objectMapper;
+    }
+
+    @AfterEach
+    void cleanup() {
+        paymentJpaRepository.deleteAll();
     }
 
     @Test
@@ -52,10 +70,11 @@ class PaymentControllerCreateTest {
                 .andExpect(jsonPath("$.message").value("User does not exist or is in a withdrawn state."));
     }
 
+
     @Test
     void 유저의_현재_보유금액과_결제금액_합산금액이_최대한도금액을_초과한다면_결제에_실패한다() throws Exception {
         //given
-        PaymentCreateRequest request = new PaymentCreateRequest(1L, 600_000L);
+        PaymentCreateRequest request = new PaymentCreateRequest(1L, 800_000L);
 
         //when & then
         mockMvc.perform(post("/pay/payments")
@@ -69,10 +88,43 @@ class PaymentControllerCreateTest {
                 .andExpect(jsonPath("$.message").value("Payment amount exceeds the user's maximum allowed balance."));
     }
 
+    //유저의 현재 보유금액 9,000,000 (최대보유금액 10,000,000)
+    //이번달 한도금액 7,000,000
+    //이번달 결제금액 6,000,000
     @Test
     void 유저의_머니결제금액이_요청월_기준_1달_결제최대한도금액을_초과하면_결제에_실패한다() throws Exception {
         //given
-        PaymentCreateRequest request = new PaymentCreateRequest(1L, 800_000L);
+        paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                .user(User.builder().id(1L).build())
+                .amount(2_000_000L)
+                .transactionId("6400158038980527633")
+                .status(PaymentStatus.DONE)
+                .createdAt(LocalDateTime.of(2024, 8, 10, 12, 0))
+                .approvedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()));
+
+        paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                .user(User.builder().id(1L).build())
+                .amount(2_000_000L)
+                .transactionId("7992336692739426043")
+                .status(PaymentStatus.DONE)
+                .createdAt(LocalDateTime.of(2024, 8, 15, 12, 0))
+                .approvedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()));
+
+        paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                .user(User.builder().id(1L).build())
+                .amount(2_000_000L)
+                .transactionId("4972403254390018742")
+                .status(PaymentStatus.DONE)
+                .createdAt(LocalDateTime.of(2024, 8, 20, 12, 0))
+                .approvedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()));
+
+        PaymentCreateRequest request = new PaymentCreateRequest(1L, 1_500_000L);
 
         //when & then
         mockMvc.perform(post("/pay/payments")
@@ -86,10 +138,25 @@ class PaymentControllerCreateTest {
                 .andExpect(jsonPath("$.message").value("Monthly payment limit exceeded."));
     }
 
+    //유저의 현재 보유금액 9,000,000 (최대보유금액 10,000,000)
+    //이번달 한도금액 7,000,000
+    //이번달 결제금액 6,000,000
+    //1일 한도금액 3,000,000
+    //오늘 결제금액 1,500,000
     @Test
     void 유저의_머니결제금액이_요청일자_기준_1일_결제최대한도금액을_초과하면_결제에_실패한다() throws Exception {
         //given
-        PaymentCreateRequest request = new PaymentCreateRequest(1L, 1_000_000L);
+        paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                        .user(User.builder().id(1L).build())
+                        .amount(1_500_000L)
+                        .transactionId("aaaaa-aaaaa-aaa")
+                        .status(PaymentStatus.DONE)
+                        .createdAt(LocalDateTime.now())
+                        .approvedAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build()));
+
+        PaymentCreateRequest request = new PaymentCreateRequest(1L, 2_000_000L);
 
         //when & then
         mockMvc.perform(post("/pay/payments")
@@ -106,7 +173,7 @@ class PaymentControllerCreateTest {
     @Test
     void 유저의_머니결제금액이_1회_결제최대한도금액을_초과하면_결제에_실패한다() throws Exception {
         //given
-        PaymentCreateRequest request = new PaymentCreateRequest(1L, 2_000_000L);
+        PaymentCreateRequest request = new PaymentCreateRequest(1L, 2_100_000L);
 
         //when & then
         mockMvc.perform(post("/pay/payments")
