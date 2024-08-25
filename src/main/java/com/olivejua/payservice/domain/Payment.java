@@ -47,7 +47,7 @@ public class Payment {
     }
 
     public boolean hasDifferentPayerFrom(User user) {
-        return Objects.equals(this.user.getId(), user.getId());
+        return !Objects.equals(this.user.getId(), user.getId());
     }
 
     public boolean hasStatusOf(PaymentStatus status) {
