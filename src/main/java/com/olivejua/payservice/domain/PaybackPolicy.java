@@ -9,24 +9,26 @@ import java.time.LocalDateTime;
 @Getter
 public class PaybackPolicy {
     private final Long id;
+    private final String name;
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final boolean active;
     private final BigDecimal rate;
     private final BigDecimal maxPaybackAmount;
-    private final BigDecimal minPurchaseAmount;
+    private final BigDecimal minPaymentAmount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     @Builder
-    public PaybackPolicy(Long id, LocalDateTime startDate, LocalDateTime endDate, Boolean isActive, BigDecimal rate, BigDecimal maxPaybackAmount, BigDecimal minPurchaseAmount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public PaybackPolicy(Long id, String name, LocalDateTime startDate, LocalDateTime endDate, Boolean isActive, BigDecimal rate, BigDecimal maxPaybackAmount, BigDecimal minPaymentAmount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
+        this.name = name;
         this.startDate = startDate;
         this.endDate = endDate;
         this.active = isActive != null && isActive;
         this.rate = rate;
         this.maxPaybackAmount = maxPaybackAmount;
-        this.minPurchaseAmount = minPurchaseAmount;
+        this.minPaymentAmount = minPaymentAmount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

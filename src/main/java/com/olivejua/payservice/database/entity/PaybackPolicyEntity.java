@@ -19,6 +19,9 @@ public class PaybackPolicyEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "start_date")
     private LocalDateTime startDate;
 
@@ -34,8 +37,8 @@ public class PaybackPolicyEntity {
     @Column(name = "max_payback_amount")
     private BigDecimal maxPaybackAmount;
 
-    @Column(name = "min_purchase_amount")
-    private BigDecimal minPurchaseAmount;
+    @Column(name = "min_payment_amount")
+    private BigDecimal minPaymentAmount;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -46,12 +49,13 @@ public class PaybackPolicyEntity {
     public static PaybackPolicyEntity from(PaybackPolicy paybackPolicy) {
         PaybackPolicyEntity paybackPolicyEntity = new PaybackPolicyEntity();
         paybackPolicyEntity.id = paybackPolicy.getId();
+        paybackPolicyEntity.name = paybackPolicy.getName();
         paybackPolicyEntity.startDate = paybackPolicy.getStartDate();
         paybackPolicyEntity.endDate = paybackPolicy.getEndDate();
         paybackPolicyEntity.isActive = paybackPolicy.isActive();
         paybackPolicyEntity.rate = paybackPolicy.getRate();
         paybackPolicyEntity.maxPaybackAmount = paybackPolicy.getMaxPaybackAmount();
-        paybackPolicyEntity.minPurchaseAmount = paybackPolicy.getMinPurchaseAmount();
+        paybackPolicyEntity.minPaymentAmount = paybackPolicy.getMinPaymentAmount();
         paybackPolicyEntity.createdAt = paybackPolicy.getCreatedAt();
         paybackPolicyEntity.updatedAt = paybackPolicy.getUpdatedAt();
 
@@ -61,12 +65,13 @@ public class PaybackPolicyEntity {
     public PaybackPolicy toModel() {
         return PaybackPolicy.builder()
                 .id(id)
+                .name(name)
                 .startDate(startDate)
                 .endDate(endDate)
                 .isActive(isActive)
                 .rate(rate)
                 .maxPaybackAmount(maxPaybackAmount)
-                .minPurchaseAmount(minPurchaseAmount)
+                .minPaymentAmount(minPaymentAmount)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
