@@ -59,7 +59,7 @@ public class PaybackPolicyEntity {
                 .id(id)
                 .startDate(startDate)
                 .endDate(endDate)
-                .paybackRate(rate)
+                .rate(rate)
                 .maxPaybackAmount(maxPaybackAmount)
                 .minPurchaseAmount(minPurchaseAmount)
                 .createdAt(createdAt)
