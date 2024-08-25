@@ -15,10 +15,11 @@ public class Payment {
     private final String transactionId;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final LocalDateTime approvedAt;
     private final LocalDateTime canceledAt;
 
     @Builder
-    public Payment(Long id, User user, Long amount, PaymentStatus status, String transactionId, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime canceledAt) {
+    public Payment(Long id, User user, Long amount, PaymentStatus status, String transactionId, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime approvedAt, LocalDateTime canceledAt) {
         this.id = id;
         this.user = user;
         this.amount = amount;
@@ -26,6 +27,7 @@ public class Payment {
         this.transactionId = transactionId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.approvedAt = approvedAt;
         this.canceledAt = canceledAt;
     }
 }

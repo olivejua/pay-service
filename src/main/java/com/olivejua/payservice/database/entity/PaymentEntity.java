@@ -38,6 +38,9 @@ public class PaymentEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
@@ -50,6 +53,7 @@ public class PaymentEntity {
         paymentEntity.transactionId = payment.getTransactionId();
         paymentEntity.createdAt = payment.getCreatedAt();
         paymentEntity.updatedAt = payment.getUpdatedAt();
+        paymentEntity.approvedAt = payment.getApprovedAt();
         paymentEntity.canceledAt = payment.getCanceledAt();
 
         return paymentEntity;
