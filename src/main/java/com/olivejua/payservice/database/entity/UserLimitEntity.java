@@ -53,4 +53,17 @@ public class UserLimitEntity {
 
         return userLimitEntity;
     }
+
+    public UserLimit toModel() {
+        return UserLimit.builder()
+                .id(id)
+                .user(user.toModel())
+                .maxBalance(maxBalance)
+                .singlePaymentLimit(singlePaymentLimit)
+                .dailyPaymentLimit(dailyPaymentLimit)
+                .monthlyPaymentLimit(monthlyPaymentLimit)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
 }
