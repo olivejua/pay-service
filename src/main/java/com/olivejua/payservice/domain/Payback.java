@@ -40,4 +40,23 @@ public class Payback {
                 .updatedAt(createdDateTime)
                 .build();
     }
+
+    public boolean hasStatusOf(PaybackStatus status) {
+        return this.status == status;
+    }
+
+    public Payback cancel() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Payback.builder()
+                .id(id)
+                .policy(policy)
+                .payment(payment)
+                .amount(amount)
+                .status(PaybackStatus.CANCELED)
+                .createdAt(createdAt)
+                .updatedAt(now)
+                .canceledAt(now)
+                .build();
+    }
 }

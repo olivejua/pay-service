@@ -1,6 +1,8 @@
 package com.olivejua.payservice.service;
 
+import com.olivejua.payservice.controller.request.PaybackCancelRequest;
 import com.olivejua.payservice.controller.request.PaybackCreateRequest;
+import com.olivejua.payservice.controller.response.PaybackCancelResponse;
 import com.olivejua.payservice.controller.response.PaybackCreateResponse;
 import com.olivejua.payservice.database.entity.PaybackEntity;
 import com.olivejua.payservice.database.entity.PaybackPolicyEntity;
@@ -12,6 +14,7 @@ import com.olivejua.payservice.domain.Payback;
 import com.olivejua.payservice.domain.PaybackPolicy;
 import com.olivejua.payservice.domain.Payment;
 import com.olivejua.payservice.domain.User;
+import com.olivejua.payservice.domain.type.PaybackStatus;
 import com.olivejua.payservice.error.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,7 @@ public class PaybackService {
 
     /**
      * TODO 고려사항이 비즈니스에 대한 부분일까 아니면 이슈가 발생할만 곳들을 짚을 수 있는 능력일까?
+     * TODO 검증 순서도 맞는지 한번 더 검토해보기
      */
     public Optional<PaybackCreateResponse> createPayback(PaybackCreateRequest request) {
         User user = userRepository.findById(request.userId())
@@ -58,5 +62,26 @@ public class PaybackService {
         return Optional.of(PaybackCreateResponse.from(payback));
     }
 
+    public Optional<PaybackCancelResponse> cancelPayback(PaybackCancelRequest request) {
+        User user = userRepository.findById(request.userId())
+                .map(UserEntity::toModel)
+                .filter(User::hasActiveStatus)
+                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state."));
 
+        Optional<Payback> paybackOptional = paybackRepository.findByPaymentId(request.paymentId()).map(PaybackEntity::toModel);
+
+        if (paybackOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Payback payback = paybackOptional.get();
+        if (payback.hasStatusOf(PaybackStatus.CANCELED)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "ALREADY_CANCELED", "The payback has already been canceled.");
+        }
+
+        payback = payback.cancel();
+        payback = paybackRepository.save(PaybackEntity.from(payback)).toModel();
+
+        return Optional.of(PaybackCancelResponse.from(payback));
+    }
 }

@@ -2,6 +2,7 @@ package com.olivejua.payservice.controller;
 
 import com.olivejua.payservice.controller.request.PaybackCancelRequest;
 import com.olivejua.payservice.controller.request.PaybackCreateRequest;
+import com.olivejua.payservice.controller.response.PaybackCancelResponse;
 import com.olivejua.payservice.controller.response.PaybackCreateResponse;
 import com.olivejua.payservice.service.PaybackService;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +34,18 @@ public class PaybackController {
                         .build());
     }
 
-    @PostMapping("/{paybackId}/cancel")
-    public ResponseEntity<Object> cancelPayback(@PathVariable Long paybackId, @RequestBody PaybackCancelRequest request) {
+    @PostMapping("/cancel")
+    public ResponseEntity<PaybackCancelResponse> cancelPayback(@RequestBody PaybackCancelRequest request) {
+        Optional<PaybackCancelResponse> responseOptional = paybackService.cancelPayback(request);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(null);
+        return responseOptional
+                .map(response ->
+                        ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(response))
+                .orElseGet(() ->
+                        ResponseEntity
+                                .noContent()
+                                .build());
     }
 }
