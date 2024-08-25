@@ -90,9 +90,7 @@ public class PaymentService {
                 .filter(User::hasActiveStatus)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state."));
 
-        Payment payment = paymentRepository.findById(id)
-                .map(PaymentEntity::toModel)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "PAYMENT_NOT_FOUND", "Payment information not found."));
+        Payment payment = getById(id);
 
         if (payment.hasDifferentPayerFrom(user)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "UNAUTHORIZED_CANCELLATION", "The requester is not authorized to cancel this payment.");
@@ -108,5 +106,11 @@ public class PaymentService {
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
         return PaymentCancelResponse.from(payment);
+    }
+
+    public Payment getById(Long id) {
+        return paymentRepository.findById(id)
+                .map(PaymentEntity::toModel)
+                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "PAYMENT_NOT_FOUND", "Payment information not found."));
     }
 }
