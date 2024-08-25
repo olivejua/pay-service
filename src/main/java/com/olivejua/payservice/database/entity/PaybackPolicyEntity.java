@@ -25,8 +25,8 @@ public class PaybackPolicyEntity {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(name = "payback_rate")
-    private BigDecimal paybackRate;
+    @Column(name = "rate")
+    private BigDecimal rate;
 
     @Column(name = "max_payback_amount")
     private BigDecimal maxPaybackAmount;
@@ -45,7 +45,7 @@ public class PaybackPolicyEntity {
         paybackPolicyEntity.id = paybackPolicy.getId();
         paybackPolicyEntity.startDate = paybackPolicy.getStartDate();
         paybackPolicyEntity.endDate = paybackPolicy.getEndDate();
-        paybackPolicyEntity.paybackRate = paybackPolicy.getPaybackRate();
+        paybackPolicyEntity.rate = paybackPolicy.getRate();
         paybackPolicyEntity.maxPaybackAmount = paybackPolicy.getMaxPaybackAmount();
         paybackPolicyEntity.minPurchaseAmount = paybackPolicy.getMinPurchaseAmount();
         paybackPolicyEntity.createdAt = paybackPolicy.getCreatedAt();
@@ -59,7 +59,7 @@ public class PaybackPolicyEntity {
                 .id(id)
                 .startDate(startDate)
                 .endDate(endDate)
-                .paybackRate(paybackRate)
+                .paybackRate(rate)
                 .maxPaybackAmount(maxPaybackAmount)
                 .minPurchaseAmount(minPurchaseAmount)
                 .createdAt(createdAt)
