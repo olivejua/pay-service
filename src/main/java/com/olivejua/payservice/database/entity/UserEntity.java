@@ -57,4 +57,18 @@ public class UserEntity {
 
         return userEntity;
     }
+
+    public User toModel() {
+        return User.builder()
+                .id(id)
+                .name(name)
+                .email(email)
+                .status(status)
+                .currentBalance(currentBalance)
+                .accountBank(accountBank)
+                .accountNumber(accountNumber)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
 }
