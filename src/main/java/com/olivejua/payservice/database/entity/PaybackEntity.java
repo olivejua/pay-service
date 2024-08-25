@@ -18,6 +18,10 @@ public class PaybackEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "policy_id")
+    private PaybackPolicyEntity policy;
+
     @OneToOne
     @JoinColumn(name = "payment_id")
     private PaymentEntity payment;
@@ -41,6 +45,7 @@ public class PaybackEntity {
     public static PaybackEntity from(Payback payback) {
         PaybackEntity paybackEntity = new PaybackEntity();
         paybackEntity.id = payback.getId();
+        paybackEntity.policy = PaybackPolicyEntity.from(payback.getPolicy());
         paybackEntity.payment = PaymentEntity.from(payback.getPayment());
         paybackEntity.amount = payback.getAmount();
         paybackEntity.status = payback.getStatus();

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 public class Payback {
     private final Long id;
+    private final PaybackPolicy policy;
     private final Payment payment;
     private final Long amount;
     private final PaybackStatus status;
@@ -17,8 +18,9 @@ public class Payback {
     private final LocalDateTime canceledAt;
 
     @Builder
-    public Payback(Long id, Payment payment, Long amount, PaybackStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime canceledAt) {
+    public Payback(Long id, PaybackPolicy policy, Payment payment, Long amount, PaybackStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime canceledAt) {
         this.id = id;
+        this.policy = policy;
         this.payment = payment;
         this.amount = amount;
         this.status = status;

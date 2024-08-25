@@ -59,7 +59,6 @@ public class PaymentEntity {
         return paymentEntity;
     }
 
-    //User가 Id값만 존재해도 에러없는지 확인하기
     public Payment toModel() {
         return Payment.builder()
                 .id(id)
