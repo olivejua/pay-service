@@ -9,6 +9,7 @@ import com.olivejua.payservice.database.entity.PaymentEntity;
 import com.olivejua.payservice.database.repository.PaybackJpaRepository;
 import com.olivejua.payservice.database.repository.PaymentJpaRepository;
 import com.olivejua.payservice.domain.Payback;
+import com.olivejua.payservice.domain.PaybackPolicy;
 import com.olivejua.payservice.domain.Payment;
 import com.olivejua.payservice.domain.User;
 import com.olivejua.payservice.domain.type.PaybackStatus;
@@ -94,6 +95,7 @@ class PaybackControllerCreateTest {
                 .andExpect(jsonPath("$.message").value("Payment information not found."));
     }
 
+    @Sql({"/sql/payback-policy-repository-test-data.sql"})
     @Test
     void 결제건의_페이백이_존재한다면_실패한다() throws Exception {
         //given
@@ -109,6 +111,7 @@ class PaybackControllerCreateTest {
                 .build())).toModel();
 
         paybackJpaRepository.save(PaybackEntity.from(Payback.builder()
+                        .policy(PaybackPolicy.builder().id(1L).build())
                         .payment(savedPayment)
                         .amount(1_000L)
                         .status(PaybackStatus.COMPLETED)
@@ -116,7 +119,7 @@ class PaybackControllerCreateTest {
                         .updatedAt(paymentCreatedDateTime)
                 .build()));
 
-        PaybackCreateRequest request = new PaybackCreateRequest(1L, 1L);
+        PaybackCreateRequest request = new PaybackCreateRequest(1L, savedPayment.getId());
 
         //when & then
         mockMvc.perform(post("/pay/paybacks")
@@ -133,16 +136,54 @@ class PaybackControllerCreateTest {
     @Test
     void 현재_적용가능한_정책이_존재하지_않는다면_페이백을_처리하지_않고_종료한다() throws Exception {
         //given
+        LocalDateTime paymentCreatedDateTime = LocalDateTime.of(2024, 8, 1, 12, 0);
+        Long savedPaymentId = paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                .user(User.builder().id(1L).build())
+                .amount(1_000_000L)
+                .transactionId("6400158038980527633")
+                .status(PaymentStatus.DONE)
+                .createdAt(paymentCreatedDateTime)
+                .approvedAt(paymentCreatedDateTime)
+                .updatedAt(paymentCreatedDateTime)
+                .build())).getId();
+
+        PaybackCreateRequest request = new PaybackCreateRequest(1L, savedPaymentId);
 
         //when & then
-
+        mockMvc.perform(post("/pay/paybacks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isNoContent());
     }
 
+    @Sql({"/sql/payback-policy-repository-test-data.sql"})
     @Test
     void 모든_조건을_충족하면_페이백상태를_변경하고_유저의_보유금액에서_페이백금액이_차감된다() throws Exception {
         //given
+        LocalDateTime paymentCreatedDateTime = LocalDateTime.of(2024, 8, 1, 12, 0);
+        Long savedPaymentId = paymentJpaRepository.save(PaymentEntity.from(Payment.builder()
+                .user(User.builder().id(1L).build())
+                .amount(1_000_000L)
+                .transactionId("6400158038980527633")
+                .status(PaymentStatus.DONE)
+                .createdAt(paymentCreatedDateTime)
+                .approvedAt(paymentCreatedDateTime)
+                .updatedAt(paymentCreatedDateTime)
+                .build())).getId();
+
+        PaybackCreateRequest request = new PaybackCreateRequest(1L, savedPaymentId);
 
         //when & then
-
+        mockMvc.perform(post("/pay/paybacks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+        //TODO 유저 잔액 검증하기
     }
 }

@@ -56,4 +56,16 @@ public class PaybackEntity {
         return paybackEntity;
     }
 
+    public Payback toModel() {
+        return Payback.builder()
+                .id(id)
+                .policy(policy.toModel())
+                .payment(payment.toModel())
+                .amount(amount)
+                .status(status)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .canceledAt(canceledAt)
+                .build();
+    }
 }

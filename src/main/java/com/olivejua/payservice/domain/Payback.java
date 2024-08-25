@@ -4,6 +4,7 @@ import com.olivejua.payservice.domain.type.PaybackStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,5 +28,16 @@ public class Payback {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.canceledAt = canceledAt;
+    }
+
+    public static Payback from(PaybackPolicy policy, Payment payment) {
+        LocalDateTime createdDateTime = LocalDateTime.now();
+        return Payback.builder()
+                .policy(policy)
+                .payment(payment)
+                .amount(BigDecimal.valueOf(payment.getAmount()).multiply(policy.getRate()).longValue())
+                .createdAt(createdDateTime)
+                .updatedAt(createdDateTime)
+                .build();
     }
 }

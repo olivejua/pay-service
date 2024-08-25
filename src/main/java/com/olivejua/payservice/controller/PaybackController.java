@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @RequestMapping("/pay/paybacks")
 @RestController
@@ -18,11 +20,17 @@ public class PaybackController {
     //TODO 페이백 요청은 비동기 요청
     @PostMapping
     public ResponseEntity<PaybackCreateResponse> createPayback(@RequestBody PaybackCreateRequest request) {
-        PaybackCreateResponse response = paybackService.createPayback(request);
+        Optional<PaybackCreateResponse> responseOptional = paybackService.createPayback(request);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        return responseOptional
+                .map(response ->
+                        ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .body(response))
+                .orElseGet(() ->
+                        ResponseEntity
+                        .noContent()
+                        .build());
     }
 
     @PostMapping("/{paybackId}/cancel")
