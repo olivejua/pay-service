@@ -30,4 +30,18 @@ public class Payment {
         this.approvedAt = approvedAt;
         this.canceledAt = canceledAt;
     }
+
+    public Payment cancel(LocalDateTime canceledAt) {
+        return Payment.builder()
+                .id(id)
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.CANCELED)
+                .transactionId(transactionId)
+                .createdAt(createdAt)
+                .updatedAt(LocalDateTime.now())
+                .approvedAt(approvedAt)
+                .canceledAt(canceledAt)
+                .build();
+    }
 }
