@@ -7,6 +7,7 @@ import com.olivejua.payservice.controller.response.PaymentCreateResponse;
 import com.olivejua.payservice.database.entity.PaymentEntity;
 import com.olivejua.payservice.database.entity.UserEntity;
 import com.olivejua.payservice.database.entity.UserLimitEntity;
+import com.olivejua.payservice.database.repository.PaymentJpaRepository;
 import com.olivejua.payservice.database.repository.UserJpaRepository;
 import com.olivejua.payservice.database.repository.UserLimitJpaRepository;
 import com.olivejua.payservice.domain.Payment;
@@ -21,13 +22,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
     private final UserJpaRepository userRepository;
     private final UserLimitJpaRepository userLimitRepository;
+    private final PaymentJpaRepository paymentRepository;
+    private final PaymentAgencyHandler paymentAgencyHandler;
 
     private final User dummyUser = User.builder()
             .id(1L)
@@ -54,12 +56,13 @@ public class PaymentService {
                 .map(UserLimitEntity::toModel)
                 .orElse(UserLimit.createDefaultSettings(user));
 
-        final LocalDate today = LocalDate.now();
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDate today = now.toLocalDate();
 
         //TODO 구현방법 맞는지 검토해보기
         //TODO 유저의 결제 금액이 유효성검증해서 결제할 수 있는 금액인지 검증하는 기능을 분리하기
-        long todayTransactionAmount = paymentRepository.sumOfAmountsBetween(today, today);
-        long thisMonthTransactionAmount = paymentRepository.sumOfAmountsBetween(LocalDate.of(today.getYear(), today.getMonth(), 1), LocalDate.of(today.getYear(), today.getMonth(), today.lengthOfMonth()));
+        long todayTransactionAmount = paymentRepository.findTotalAmountByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.DONE, today.atStartOfDay(), today.atTime(23, 59, 59));
+        long thisMonthTransactionAmount = paymentRepository.findTotalAmountByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.DONE, LocalDate.of(today.getYear(), today.getMonth(), 1).atStartOfDay(), LocalDate.of(today.getYear(), today.getMonth(), today.lengthOfMonth()).atTime(23, 59, 59));
 
         //유저의 한도금액을 넘지 않았는지
         if (userLimit.exceedSinglePaymentLimit(request.amount())) {
@@ -82,7 +85,6 @@ public class PaymentService {
         String transactionId = paymentAgencyHandler.requestPaymentFromAgency();
 
         //status 두개밖에 없는데 필요한지 고민해보기
-        LocalDateTime now = LocalDateTime.now();
         Payment payment = Payment.builder()
                 .user(user)
                 .amount(request.amount())
@@ -99,13 +101,12 @@ public class PaymentService {
 
 
     public PaymentCancelResponse cancelPayment(Long id, PaymentCancelRequest request) {
-        //FIXME 비즈니스 로직 구현 후 제거하기
         User user = userRepository.findById(request.userId())
                 .map(UserEntity::toModel)
                 .filter(User::hasActiveStatus)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state."));
 
-        Payment payment = paymentRepository.findById()
+        Payment payment = paymentRepository.findById(id)
                 .map(PaymentEntity::toModel)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "PAYMENT_NOT_FOUND", "Payment information not found."));
 
@@ -117,7 +118,7 @@ public class PaymentService {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "ALREADY_CANCELED", "The payment has already been canceled.");
         }
 
-        LocalDateTime canceledAt = paymentAgencyHandler.requestPaymentCancelationFromAgency();
+        LocalDateTime canceledAt = paymentAgencyHandler.requestCancellationFromAgency();
 
         payment = payment.cancel(canceledAt);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();

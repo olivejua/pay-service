@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 public class Payment {
@@ -43,5 +44,13 @@ public class Payment {
                 .approvedAt(approvedAt)
                 .canceledAt(canceledAt)
                 .build();
+    }
+
+    public boolean hasDifferentPayerFrom(User user) {
+        return Objects.equals(this.user.getId(), user.getId());
+    }
+
+    public boolean hasStatusOf(PaymentStatus status) {
+        return this.status == status;
     }
 }
