@@ -30,4 +30,8 @@ public class User {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
+
+    public boolean hasActiveStatus() {
+        return status == UserStatus.ACTIVE;
+    }
 }
