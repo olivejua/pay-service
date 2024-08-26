@@ -1,7 +1,5 @@
 package com.olivejua.payservice.service;
 
-import com.olivejua.payservice.controller.request.PaybackCancelRequest;
-import com.olivejua.payservice.controller.request.PaybackCreateRequest;
 import com.olivejua.payservice.controller.response.PaybackCancelResponse;
 import com.olivejua.payservice.controller.response.PaybackCreateResponse;
 import com.olivejua.payservice.database.entity.PaybackEntity;
@@ -32,8 +30,8 @@ public class PaybackService {
      * TODO 고려사항이 비즈니스에 대한 부분일까 아니면 이슈가 발생할만 곳들을 짚을 수 있는 능력일까?
      * TODO 검증 순서도 맞는지 한번 더 검토해보기
      */
-    public Optional<PaybackCreateResponse> createPayback(PaybackCreateRequest request) {
-        Payment payment = paymentService.getById(request.paymentId());
+    public Optional<PaybackCreateResponse> createPayback(Long paymentId) {
+        Payment payment = paymentService.getById(paymentId);
         if (paybackRepository.existsByPaymentId(payment.getId())) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "PAYBACK_ALREADY_EXISTS", "Payback for this payment already exists.");
         }
@@ -53,8 +51,8 @@ public class PaybackService {
         return Optional.of(PaybackCreateResponse.from(payback));
     }
 
-    public Optional<PaybackCancelResponse> cancelPayback(PaybackCancelRequest request) {
-        Optional<Payback> paybackOptional = paybackRepository.findByPaymentId(request.paymentId()).map(PaybackEntity::toModel);
+    public Optional<PaybackCancelResponse> cancelPayback(Long paymentId) {
+        Optional<Payback> paybackOptional = paybackRepository.findByPaymentId(paymentId).map(PaybackEntity::toModel);
 
         if (paybackOptional.isEmpty()) {
             return Optional.empty();

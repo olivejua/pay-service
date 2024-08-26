@@ -22,7 +22,7 @@ public class PaymentController {
     @PostMapping
     ResponseEntity<PaymentCreateResponse> createPayment(@RequestBody PaymentCreateRequest request) {
         final User activeUser = userService.getActiveUser(request.userId());
-        final PaymentCreateResponse response = paymentService.createPayment(activeUser, request);
+        final PaymentCreateResponse response = paymentService.createPayment(activeUser, request.amount());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -32,7 +32,7 @@ public class PaymentController {
     @PostMapping("/{paymentId}/cancel")
     ResponseEntity<PaymentCancelResponse> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestBody PaymentCancelRequest request) {
         final User activeUser = userService.getActiveUser(request.userId());
-        final PaymentCancelResponse response = paymentService.cancelPayment(activeUser, paymentId, request);
+        final PaymentCancelResponse response = paymentService.cancelPayment(activeUser, paymentId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

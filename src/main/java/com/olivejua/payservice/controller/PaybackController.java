@@ -28,7 +28,7 @@ public class PaybackController {
     public ResponseEntity<PaybackCreateResponse> createPayback(@RequestBody PaybackCreateRequest request) {
         userService.validateIfUserIsActive(request.userId());
 
-        Optional<PaybackCreateResponse> responseOptional = paybackService.createPayback(request);
+        Optional<PaybackCreateResponse> responseOptional = paybackService.createPayback(request.paymentId());
 
         return responseOptional
                 .map(response ->
@@ -45,7 +45,7 @@ public class PaybackController {
     public ResponseEntity<PaybackCancelResponse> cancelPayback(@RequestBody PaybackCancelRequest request) {
         userService.validateIfUserIsActive(request.userId());
 
-        Optional<PaybackCancelResponse> responseOptional = paybackService.cancelPayback(request);
+        Optional<PaybackCancelResponse> responseOptional = paybackService.cancelPayback(request.paymentId());
 
         return responseOptional
                 .map(response ->

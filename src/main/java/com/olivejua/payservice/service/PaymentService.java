@@ -1,13 +1,10 @@
 package com.olivejua.payservice.service;
 
-import com.olivejua.payservice.controller.request.PaymentCancelRequest;
-import com.olivejua.payservice.controller.request.PaymentCreateRequest;
 import com.olivejua.payservice.controller.response.PaymentCancelResponse;
 import com.olivejua.payservice.controller.response.PaymentCreateResponse;
 import com.olivejua.payservice.database.entity.PaymentEntity;
 import com.olivejua.payservice.database.entity.UserLimitEntity;
 import com.olivejua.payservice.database.repository.PaymentJpaRepository;
-import com.olivejua.payservice.database.repository.UserJpaRepository;
 import com.olivejua.payservice.database.repository.UserLimitJpaRepository;
 import com.olivejua.payservice.domain.Payment;
 import com.olivejua.payservice.domain.User;
@@ -24,12 +21,11 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
-    private final UserJpaRepository userRepository;
     private final UserLimitJpaRepository userLimitRepository;
     private final PaymentJpaRepository paymentRepository;
     private final PaymentAgencyHandler paymentAgencyHandler;
 
-    public PaymentCreateResponse createPayment(User user, PaymentCreateRequest request) {
+    public PaymentCreateResponse createPayment(User user, long amount) {
         UserLimit userLimit = userLimitRepository.findByUserId(user.getId())
                 .map(UserLimitEntity::toModel)
                 .orElse(UserLimit.createDefaultSettings(user));
@@ -43,19 +39,19 @@ public class PaymentService {
         long thisMonthTransactionAmount = paymentRepository.findTotalAmountByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.DONE, LocalDate.of(today.getYear(), today.getMonth(), 1).atStartOfDay(), LocalDate.of(today.getYear(), today.getMonth(), today.lengthOfMonth()).atTime(23, 59, 59));
 
         //유저의 한도금액을 넘지 않았는지
-        if (userLimit.exceedSinglePaymentLimit(request.amount())) {
+        if (userLimit.exceedSinglePaymentLimit(amount)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "SINGLE_PAYMENT_LIMIT_EXCEEDED", "Single payment limit exceeded.");
         }
 
-        if (userLimit.exceedDailyPaymentLimit(todayTransactionAmount + request.amount())) {
+        if (userLimit.exceedDailyPaymentLimit(todayTransactionAmount + amount)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "DAILY_LIMIT_EXCEEDED", "Daily payment limit exceeded.");
         }
 
-        if (userLimit.exceedMonthlyPaymentLimit(thisMonthTransactionAmount + request.amount())) {
+        if (userLimit.exceedMonthlyPaymentLimit(thisMonthTransactionAmount + amount)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "MONTHLY_LIMIT_EXCEEDED", "Monthly payment limit exceeded.");
         }
 
-        if (userLimit.exceedMaxBalance(user.getCurrentBalance() + request.amount())) {
+        if (userLimit.exceedMaxBalance(user.getCurrentBalance() + amount)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "MAX_BALANCE_EXCEEDED", "Payment amount exceeds the user's maximum allowed balance.");
         }
 
@@ -78,7 +74,7 @@ public class PaymentService {
     }
 
 
-    public PaymentCancelResponse cancelPayment(User user, Long id, PaymentCancelRequest request) {
+    public PaymentCancelResponse cancelPayment(User user, Long id) {
         Payment payment = getById(id);
 
         if (payment.hasDifferentPayerFrom(user)) {
