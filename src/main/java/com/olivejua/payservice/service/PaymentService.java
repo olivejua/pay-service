@@ -5,7 +5,6 @@ import com.olivejua.payservice.controller.request.PaymentCreateRequest;
 import com.olivejua.payservice.controller.response.PaymentCancelResponse;
 import com.olivejua.payservice.controller.response.PaymentCreateResponse;
 import com.olivejua.payservice.database.entity.PaymentEntity;
-import com.olivejua.payservice.database.entity.UserEntity;
 import com.olivejua.payservice.database.entity.UserLimitEntity;
 import com.olivejua.payservice.database.repository.PaymentJpaRepository;
 import com.olivejua.payservice.database.repository.UserJpaRepository;
@@ -30,12 +29,7 @@ public class PaymentService {
     private final PaymentJpaRepository paymentRepository;
     private final PaymentAgencyHandler paymentAgencyHandler;
 
-    public PaymentCreateResponse createPayment(PaymentCreateRequest request) {
-        User user = userRepository.findById(request.userId())
-                .map(UserEntity::toModel)
-                .filter(User::hasActiveStatus)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state."));
-
+    public PaymentCreateResponse createPayment(User user, PaymentCreateRequest request) {
         UserLimit userLimit = userLimitRepository.findByUserId(user.getId())
                 .map(UserLimitEntity::toModel)
                 .orElse(UserLimit.createDefaultSettings(user));
@@ -84,12 +78,7 @@ public class PaymentService {
     }
 
 
-    public PaymentCancelResponse cancelPayment(Long id, PaymentCancelRequest request) {
-        User user = userRepository.findById(request.userId())
-                .map(UserEntity::toModel)
-                .filter(User::hasActiveStatus)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state."));
-
+    public PaymentCancelResponse cancelPayment(User user, Long id, PaymentCancelRequest request) {
         Payment payment = getById(id);
 
         if (payment.hasDifferentPayerFrom(user)) {
