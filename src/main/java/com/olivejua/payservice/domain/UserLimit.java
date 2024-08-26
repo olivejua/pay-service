@@ -1,9 +1,13 @@
 package com.olivejua.payservice.domain;
 
+import com.olivejua.payservice.error.ApplicationException;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 public class UserLimit {
@@ -39,19 +43,43 @@ public class UserLimit {
                 .build();
     }
 
-    public boolean exceedSinglePaymentLimit(long amount) {
-        return singlePaymentLimit < amount;
+    public void validateIfPaymentAmountDoesNotExceed(long amount, List<Payment> paymentsForThisMonth) {
+        validateIfExceedSinglePaymentLimit(amount);
+        validateIfExceedDailyPaymentLimit(amount, paymentsForThisMonth);
+        validateIfExceedMonthlyPaymentLimit(amount, paymentsForThisMonth);
+        validateIfExceedMaxBalance(amount);
     }
 
-    public boolean exceedDailyPaymentLimit(long amount) {
-        return dailyPaymentLimit < amount;
+    private void validateIfExceedSinglePaymentLimit(long amount) {
+        if (singlePaymentLimit < amount) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "SINGLE_PAYMENT_LIMIT_EXCEEDED", "Single payment limit exceeded.");
+        }
     }
 
-    public boolean exceedMonthlyPaymentLimit(long amount) {
-        return monthlyPaymentLimit < amount;
+    private void validateIfExceedDailyPaymentLimit(long amount, List<Payment> paymentsForThisMonth) {
+        final LocalDate today = LocalDate.now();
+        final long totalAmountForToday = paymentsForThisMonth.stream()
+                .filter(payment -> payment.getCreatedAt().toLocalDate().isEqual(today))
+                .map(Payment::getAmount)
+                .reduce(0L, Long::sum);
+
+        if (dailyPaymentLimit < (totalAmountForToday + amount)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "DAILY_LIMIT_EXCEEDED", "Daily payment limit exceeded.");
+        }
     }
 
-    public boolean exceedMaxBalance(long amount) {
-        return maxBalance < amount;
+    private void validateIfExceedMonthlyPaymentLimit(long amount, List<Payment> paymentsForThisMonth) {
+        final long totalAmountForThisMonth = paymentsForThisMonth.stream()
+                .map(Payment::getAmount)
+                .reduce(0L, Long::sum);
+        if (monthlyPaymentLimit < (totalAmountForThisMonth + amount)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "MONTHLY_LIMIT_EXCEEDED", "Monthly payment limit exceeded.");
+        }
+    }
+
+    private void validateIfExceedMaxBalance(long amount) {
+        if (maxBalance < (user.getCurrentBalance() + amount)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "MAX_BALANCE_EXCEEDED", "Payment amount exceeds the user's maximum allowed balance.");
+        }
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Long> {
 
@@ -24,4 +25,6 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Long>
             @Param("status") PaymentStatus status,
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay);
+
+    List<PaymentEntity> findAllByUserIdAndStatusAndCreatedAtBetween(Long userId, PaymentStatus status, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }

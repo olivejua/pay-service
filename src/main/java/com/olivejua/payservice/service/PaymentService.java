@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 import java.util.Optional;
 
 //TRNASACTION
@@ -45,28 +48,16 @@ public class PaymentService {
                 .orElse(UserLimit.createDefaultSettings(user));
 
         final LocalDate today = requestDateTime.toLocalDate();
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime endOfMonth = today.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
 
-        //TODO 구현방법 맞는지 검토해보기
         //TODO 유저의 결제 금액이 유효성검증해서 결제할 수 있는 금액인지 검증하는 기능을 분리하기
-        long todayTransactionAmount = paymentRepository.findTotalAmountByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.COMPLETED, today.atStartOfDay(), today.atTime(23, 59, 59));
-        long thisMonthTransactionAmount = paymentRepository.findTotalAmountByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.COMPLETED, LocalDate.of(today.getYear(), today.getMonth(), 1).atStartOfDay(), LocalDate.of(today.getYear(), today.getMonth(), today.lengthOfMonth()).atTime(23, 59, 59));
+        List<Payment> paymentsForThisMonth = paymentRepository.findAllByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.COMPLETED, startOfMonth, endOfMonth)
+                .stream()
+                .map(PaymentEntity::toModel)
+                .toList();
 
-        //유저의 한도금액을 넘지 않았는지
-        if (userLimit.exceedSinglePaymentLimit(amount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "SINGLE_PAYMENT_LIMIT_EXCEEDED", "Single payment limit exceeded.");
-        }
-
-        if (userLimit.exceedDailyPaymentLimit(todayTransactionAmount + amount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "DAILY_LIMIT_EXCEEDED", "Daily payment limit exceeded.");
-        }
-
-        if (userLimit.exceedMonthlyPaymentLimit(thisMonthTransactionAmount + amount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "MONTHLY_LIMIT_EXCEEDED", "Monthly payment limit exceeded.");
-        }
-
-        if (userLimit.exceedMaxBalance(user.getCurrentBalance() + amount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "MAX_BALANCE_EXCEEDED", "Payment amount exceeds the user's maximum allowed balance.");
-        }
+        userLimit.validateIfPaymentAmountDoesNotExceed(amount, paymentsForThisMonth);
     }
 
     /**
