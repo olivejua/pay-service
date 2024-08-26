@@ -140,7 +140,7 @@ class PaybackControllerCancelTest {
                 .user(User.builder().id(1L).build())
                 .amount(1_000_000L)
                 .transactionId("6400158038980527633")
-                .status(PaymentStatus.DONE)
+                .status(PaymentStatus.COMPLETED)
                 .createdAt(paymentCreatedDateTime)
                 .approvedAt(paymentCreatedDateTime)
                 .updatedAt(paymentCreatedDateTime)

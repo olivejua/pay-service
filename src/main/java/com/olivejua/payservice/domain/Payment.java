@@ -32,6 +32,30 @@ public class Payment {
         this.canceledAt = canceledAt;
     }
 
+    public static Payment createWithPending(User user, long amount, LocalDateTime createdAt) {
+        return Payment.builder()
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.PENDING)
+                .createdAt(createdAt)
+                .updatedAt(createdAt)
+                .build();
+    }
+
+    public Payment approve(String transactionId, LocalDateTime approvedAt) {
+        return Payment.builder()
+                .id(id)
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.COMPLETED)
+                .transactionId(transactionId)
+                .createdAt(createdAt)
+                .updatedAt(LocalDateTime.now())
+                .approvedAt(approvedAt)
+                .canceledAt(canceledAt)
+                .build();
+    }
+
     public Payment cancel(LocalDateTime canceledAt) {
         return Payment.builder()
                 .id(id)

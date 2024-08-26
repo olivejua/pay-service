@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 
 public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Long> {
 
-    // TODO 오늘, 이번달 거래한 결제금액 계산을 DB연산으로 할지 다 가져와서 연산할지 고민하기
-    // TODO 비교할 컬럼을 생성일자로 해야할까?
-    // TODO 날짜 계산도 빅데이터가 넘어가면 날짜에 컬럼을 추가해서 하는 것을 고려한다
+    // TODO 오늘, 이번달 거래한 결제금액 계산을 DB연산으로 할지 다 가져와서 연산할지 고민하기 -> 당연히 목록조회해서 비즈니스 로직에서 계산
+    // TODO 비교할 컬럼을 생성일자로 해야할까? -> 사실 이건 어느걸로 해도 임의로 하는거니 수정할 수 있는 부분이다.
+    // TODO 날짜 계산도 빅데이터가 넘어가면 날짜에 컬럼을 추가해서 하는 것을 고려한다.
     @Query("SELECT COALESCE(SUM(payment.amount), 0) " +
             "FROM PaymentEntity payment " +
             "WHERE payment.user.id = :userId " +

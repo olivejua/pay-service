@@ -5,23 +5,25 @@ import com.olivejua.payservice.domain.type.PaymentStatus;
 
 import java.time.LocalDateTime;
 
-public record PaymentCreateResponse(
-        Long id,
+public record PaymentApproveResponse(
         Long amount,
         String accountBank,
-        String accountNumber, // 마스킹해야한다 아니면 계좌에 대한 명칭
-//        String transactionId,
-//        LocalDateTime approvedAt,
+        String accountNumber, // 마스킹해야한다
+        String transactionId,
+        LocalDateTime approvedAt,
         PaymentStatus status,
-        LocalDateTime createdAt
+        LocalDateTime updatedAt
 ) {
-    public static PaymentCreateResponse from(Payment payment) {
-        return new PaymentCreateResponse(
-                payment.getId(),
+
+    public static PaymentApproveResponse from(Payment payment) {
+        return new PaymentApproveResponse(
                 payment.getAmount(),
                 payment.getUser().getAccountBank(),
                 payment.getUser().getAccountNumber(),
+                payment.getTransactionId(),
+                payment.getApprovedAt(),
                 payment.getStatus(),
-                payment.getCreatedAt());
+                payment.getUpdatedAt());
     }
+
 }
