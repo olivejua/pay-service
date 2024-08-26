@@ -2,7 +2,7 @@ package com.olivejua.payservice.controller;
 
 import com.olivejua.payservice.controller.request.PaymentCancelRequest;
 import com.olivejua.payservice.controller.request.PaymentCreateRequest;
-import com.olivejua.payservice.controller.response.PaymentCancelResponse;
+import com.olivejua.payservice.controller.response.PaymentCancelPendingResponse;
 import com.olivejua.payservice.controller.response.PaymentCreateResponse;
 import com.olivejua.payservice.domain.User;
 import com.olivejua.payservice.service.PaymentService;
@@ -30,9 +30,9 @@ public class PaymentController {
     }
 
     @PostMapping("/{paymentId}/cancel")
-    ResponseEntity<PaymentCancelResponse> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestBody PaymentCancelRequest request) {
+    ResponseEntity<PaymentCancelPendingResponse> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestBody PaymentCancelRequest request) {
         final User activeUser = userService.getActiveUser(request.userId());
-        final PaymentCancelResponse response = paymentService.cancelPayment(activeUser, paymentId);
+        final PaymentCancelPendingResponse response = paymentService.cancelRequestPayment(activeUser, paymentId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

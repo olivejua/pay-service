@@ -126,7 +126,7 @@ class PaymentControllerCancelTest {
                 .user(User.builder().id(1L).build())
                 .amount(1_000_000L)
                 .transactionId("6400158038980527633")
-                .status(PaymentStatus.CANCELED)
+                .status(PaymentStatus.CANCELLED)
                 .createdAt(LocalDateTime.of(2024, 8, 1, 12, 0))
                 .approvedAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -209,6 +209,9 @@ class PaymentControllerCancelTest {
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(PaymentStatus.CANCEL_PENDING.toString()))
+                .andExpect(jsonPath("$.canceledAt").doesNotExist())
+        ;
     }
 }

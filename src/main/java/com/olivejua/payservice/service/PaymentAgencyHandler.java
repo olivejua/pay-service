@@ -20,7 +20,8 @@ public class PaymentAgencyHandler {
         return payment.approve(transactionId, approvedAt);
     }
 
-    public LocalDateTime requestCancellationFromAgency() {
-        return LocalDateTime.now();
+    public Payment requestCancellationFromAgency(Payment payment) {
+        LocalDateTime canceledAt = LocalDateTime.now();
+        return payment.cancel(canceledAt);
     }
 }

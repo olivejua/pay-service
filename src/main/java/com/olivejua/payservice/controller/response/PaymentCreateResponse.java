@@ -10,8 +10,6 @@ public record PaymentCreateResponse(
         Long amount,
         String accountBank,
         String accountNumber, // 마스킹해야한다 아니면 계좌에 대한 명칭
-//        String transactionId,
-//        LocalDateTime approvedAt,
         PaymentStatus status,
         LocalDateTime createdAt
 ) {

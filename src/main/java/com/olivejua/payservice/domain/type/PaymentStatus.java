@@ -4,6 +4,6 @@ package com.olivejua.payservice.domain.type;
 public enum PaymentStatus {
     PENDING,
     COMPLETED,
-    CANCEL_REQUEST,
-    CANCELED,
+    CANCEL_PENDING,
+    CANCELLED,
 }

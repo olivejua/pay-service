@@ -1,8 +1,10 @@
 package com.olivejua.payservice.domain;
 
 import com.olivejua.payservice.domain.type.PaymentStatus;
+import com.olivejua.payservice.error.ApplicationException;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -56,12 +58,16 @@ public class Payment {
                 .build();
     }
 
-    public Payment cancel(LocalDateTime canceledAt) {
+    public Payment cancelPending() {
+        if (status == PaymentStatus.CANCELLED) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "ALREADY_CANCELED", "The payment has already been canceled.");
+        }
+
         return Payment.builder()
                 .id(id)
                 .user(user)
                 .amount(amount)
-                .status(PaymentStatus.CANCELED)
+                .status(PaymentStatus.CANCEL_PENDING)
                 .transactionId(transactionId)
                 .createdAt(createdAt)
                 .updatedAt(LocalDateTime.now())
@@ -70,11 +76,27 @@ public class Payment {
                 .build();
     }
 
-    public boolean hasDifferentPayerFrom(User user) {
-        return !Objects.equals(this.user.getId(), user.getId());
+    public Payment cancel(LocalDateTime canceledAt) {
+        return Payment.builder()
+                .id(id)
+                .user(user)
+                .amount(amount)
+                .status(PaymentStatus.CANCELLED)
+                .transactionId(transactionId)
+                .createdAt(createdAt)
+                .updatedAt(LocalDateTime.now())
+                .approvedAt(approvedAt)
+                .canceledAt(canceledAt)
+                .build();
     }
 
-    public boolean hasStatusOf(PaymentStatus status) {
-        return this.status == status;
+    public void validateIfValidUser(User user) {
+        if (!Objects.equals(this.user.getId(), user.getId())) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "UNAUTHORIZED_CANCELLATION", "The requester is not authorized to cancel this payment.");
+        }
+    }
+
+    public boolean doesNotHaveStatus(PaymentStatus status) {
+        return this.status != status;
     }
 }

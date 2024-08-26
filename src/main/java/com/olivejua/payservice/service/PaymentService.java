@@ -1,6 +1,7 @@
 package com.olivejua.payservice.service;
 
 import com.olivejua.payservice.controller.response.PaymentApproveResponse;
+import com.olivejua.payservice.controller.response.PaymentCancelPendingResponse;
 import com.olivejua.payservice.controller.response.PaymentCancelResponse;
 import com.olivejua.payservice.controller.response.PaymentCreateResponse;
 import com.olivejua.payservice.database.entity.PaymentEntity;
@@ -15,6 +16,7 @@ import com.olivejua.payservice.error.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +25,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
-//TRNASACTION
+@Transactional
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
@@ -31,33 +33,38 @@ public class PaymentService {
     private final PaymentJpaRepository paymentRepository;
     private final PaymentAgencyHandler paymentAgencyHandler;
 
-    public PaymentCreateResponse createPayment(User user, long amount) {
+    /**
+     * 결제 요청
+     */
+    public PaymentCreateResponse createPayment(User requestUser, long amount) {
         final LocalDateTime requestDateTime = LocalDateTime.now();
 
-        validateUserLimit(user, amount, requestDateTime);
+        validateUserLimit(requestUser, amount, requestDateTime);
 
-        Payment payment = Payment.createWithPending(user, amount, requestDateTime);
+        Payment payment = Payment.createWithPending(requestUser, amount, requestDateTime);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
         return PaymentCreateResponse.from(payment);
     }
 
-    private void validateUserLimit(User user, long amount, LocalDateTime requestDateTime) {
-        UserLimit userLimit = userLimitRepository.findByUserId(user.getId())
+    private void validateUserLimit(User requestUser, long amount, LocalDateTime requestDateTime) {
+        final UserLimit userLimit = userLimitRepository.findByUserId(requestUser.getId())
                 .map(UserLimitEntity::toModel)
-                .orElse(UserLimit.createDefaultSettings(user));
+                .orElse(UserLimit.createDefaultSettings(requestUser));
 
         final LocalDate today = requestDateTime.toLocalDate();
-        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
-        LocalDateTime endOfMonth = today.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
+        final List<Payment> paymentsForThisMonth = findMonthlyPayments(requestUser, today);
 
-        //TODO 유저의 결제 금액이 유효성검증해서 결제할 수 있는 금액인지 검증하는 기능을 분리하기
-        List<Payment> paymentsForThisMonth = paymentRepository.findAllByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.COMPLETED, startOfMonth, endOfMonth)
+        userLimit.validateIfPaymentAmountDoesNotExceed(amount, paymentsForThisMonth);
+    }
+
+    private List<Payment> findMonthlyPayments(User user, LocalDate targetDate) {
+        final LocalDateTime startOfMonth = targetDate.withDayOfMonth(1).atStartOfDay();
+        final LocalDateTime endOfMonth = targetDate.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
+        return paymentRepository.findAllByUserIdAndStatusAndCreatedAtBetween(user.getId(), PaymentStatus.COMPLETED, startOfMonth, endOfMonth)
                 .stream()
                 .map(PaymentEntity::toModel)
                 .toList();
-
-        userLimit.validateIfPaymentAmountDoesNotExceed(amount, paymentsForThisMonth);
     }
 
     /**
@@ -70,7 +77,7 @@ public class PaymentService {
     public Optional<PaymentApproveResponse> approvePayment(Long paymentId) {
         Payment payment = getById(paymentId);
 
-        if (!payment.hasStatusOf(PaymentStatus.PENDING)) {
+        if (payment.doesNotHaveStatus(PaymentStatus.PENDING)) {
             return Optional.empty();
         }
 
@@ -78,23 +85,31 @@ public class PaymentService {
         return Optional.of(PaymentApproveResponse.from(payment));
     }
 
-    public PaymentCancelResponse cancelPayment(User user, Long id) {
+    /**
+     * 취소 요청하면 취소접수 상태가 된다.
+     */
+    public PaymentCancelPendingResponse cancelRequestPayment(User requestUser, Long id) {
         Payment payment = getById(id);
 
-        if (payment.hasDifferentPayerFrom(user)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "UNAUTHORIZED_CANCELLATION", "The requester is not authorized to cancel this payment.");
-        }
-
-        if (payment.hasStatusOf(PaymentStatus.CANCELED)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "ALREADY_CANCELED", "The payment has already been canceled.");
-        }
-
-        LocalDateTime canceledAt = paymentAgencyHandler.requestCancellationFromAgency();
-
-        payment = payment.cancel(canceledAt);
+        payment.validateIfValidUser(requestUser);
+        payment = payment.cancelPending();
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
-        return PaymentCancelResponse.from(payment);
+        return PaymentCancelPendingResponse.from(payment);
+    }
+
+    /**
+     * 결제대행사 취소 요청 후 처리
+     */
+    public Optional<PaymentCancelResponse> cancelPayment(Long paymentId) {
+        Payment payment = getById(paymentId);
+
+        if (payment.doesNotHaveStatus(PaymentStatus.CANCEL_PENDING)) {
+            return Optional.empty();
+        }
+
+        payment = paymentAgencyHandler.requestCancellationFromAgency(payment);
+        return Optional.of(PaymentCancelResponse.from(payment));
     }
 
     public Payment getById(Long id) {
