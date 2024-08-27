@@ -27,7 +27,6 @@ public class PaybackService {
     private final PaybackJpaRepository paybackJpaRepository;
 
     /**
-     * TODO 고려사항이 비즈니스에 대한 부분일까 아니면 이슈가 발생할만 곳들을 짚을 수 있는 능력일까?
      * TODO 검증 순서도 맞는지 한번 더 검토해보기
      */
     public Optional<PaybackCreateResponse> createPayback(Long paymentId) {
