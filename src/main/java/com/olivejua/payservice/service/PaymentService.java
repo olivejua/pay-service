@@ -13,6 +13,7 @@ import com.olivejua.payservice.domain.User;
 import com.olivejua.payservice.domain.UserLimit;
 import com.olivejua.payservice.domain.type.PaymentStatus;
 import com.olivejua.payservice.error.ApplicationException;
+import com.olivejua.payservice.queue.EventQueues;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,11 @@ public class PaymentService {
         Payment payment = Payment.createWithPending(requestUser, amount, requestDateTime);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
-        return PaymentCreateResponse.from(payment);
+        final PaymentCreateResponse response = PaymentCreateResponse.from(payment);
+
+        EventQueues.PAYMENT_PROCESSING_QUEUE.add(response.id());
+
+        return response;
     }
 
     private void validateUserLimit(User requestUser, long amount, LocalDateTime requestDateTime) {
@@ -53,7 +58,7 @@ public class PaymentService {
                 .orElse(UserLimit.createDefaultSettings(requestUser));
 
         final LocalDate today = requestDateTime.toLocalDate();
-        final List<Payment> paymentsForThisMonth = findMonthlyPayments(requestUser, today);
+        final List<Payment> paymentsForThisMonth = findMonthlyPayments(requestUser, today); // TODO 캐시 고려
 
         userLimit.validateIfPaymentAmountDoesNotExceed(amount, paymentsForThisMonth);
     }
@@ -82,7 +87,11 @@ public class PaymentService {
         }
 
         payment = paymentAgencyHandler.requestPaymentFromAgency(payment);
-        return Optional.of(PaymentApproveResponse.from(payment));
+        final PaymentApproveResponse response = PaymentApproveResponse.from(payment);
+
+        EventQueues.PAYBACK_PROCESSING_QUEUE.add(paymentId);
+
+        return Optional.of(response);
     }
 
     /**
@@ -95,7 +104,11 @@ public class PaymentService {
         payment = payment.cancelPending();
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
-        return PaymentCancelPendingResponse.from(payment);
+        final PaymentCancelPendingResponse response = PaymentCancelPendingResponse.from(payment);
+
+        EventQueues.PAYMENT_CANCELLATION_QUEUE.add(response.id());
+
+        return response;
     }
 
     /**
@@ -109,7 +122,11 @@ public class PaymentService {
         }
 
         payment = paymentAgencyHandler.requestCancellationFromAgency(payment);
-        return Optional.of(PaymentCancelResponse.from(payment));
+        final PaymentCancelResponse response = PaymentCancelResponse.from(payment);
+
+        EventQueues.PAYBACK_CANCELLATION_QUEUE.add(paymentId);
+
+        return Optional.of(response);
     }
 
     public Payment getById(Long id) {
