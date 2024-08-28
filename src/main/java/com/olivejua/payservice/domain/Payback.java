@@ -36,6 +36,7 @@ public class Payback {
                 .policy(policy)
                 .payment(payment)
                 .amount(BigDecimal.valueOf(payment.getAmount()).multiply(policy.getRate()).longValue())
+                .status(PaybackStatus.COMPLETED)
                 .createdAt(createdDateTime)
                 .updatedAt(createdDateTime)
                 .build();

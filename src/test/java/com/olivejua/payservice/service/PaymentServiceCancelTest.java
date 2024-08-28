@@ -1,6 +1,9 @@
 package com.olivejua.payservice.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 class PaymentServiceCancelTest {
 
@@ -14,4 +17,14 @@ class PaymentServiceCancelTest {
      * 결제건을 취소상태로 업데이트하고, 보유금액이 차감된 상태로 업데이트된다.
      */
 
+    @Test
+    void name() {
+        Queue<Integer> q = new LinkedList<>();
+        q.add(1);
+        q.add(2);
+        q.add(3);
+        q.add(4);
+
+        System.out.println("q.remove() = " + q.remove());
+    }
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.concurrent.*;
 
 public class TimeoutFilter implements Filter {
+    //TODO 스레드풀 개수
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Override
@@ -29,7 +30,6 @@ public class TimeoutFilter implements Filter {
             httpResponse.getWriter().write(new ObjectMapper().writeValueAsString(
                     new FailureResponse("PAYMENT_TIMEOUT", "Payment processing time exceeded the limit of 5 seconds.")));
         } catch (Exception e) {
-            e.printStackTrace();
             HttpServletResponse httpResponse = (HttpServletResponse) response;
             httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             httpResponse.getWriter().write(new ObjectMapper().writeValueAsString(

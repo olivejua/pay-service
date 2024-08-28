@@ -32,7 +32,7 @@ import java.util.Optional;
 public class PaymentService {
     private final UserLimitJpaRepository userLimitRepository;
     private final PaymentJpaRepository paymentRepository;
-    private final PaymentAgencyHandler paymentAgencyHandler;
+    private final DummyPaymentAgencyHandler paymentAgencyHandler;
 
     /**
      * 결제 요청

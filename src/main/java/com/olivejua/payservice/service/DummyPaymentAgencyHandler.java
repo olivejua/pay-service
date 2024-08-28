@@ -1,13 +1,24 @@
 package com.olivejua.payservice.service;
 
 import com.olivejua.payservice.domain.Payment;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Component
-public class PaymentAgencyHandler {
+public class DummyPaymentAgencyHandler {
+    private final RestTemplate restTemplate;
+
+    public DummyPaymentAgencyHandler() {
+        this.restTemplate = new RestTemplateBuilder()
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(5))
+                .build();
+    }
 
     /**
      * 결제 요청후 응답이 5초이내 오지 않으면 timeout 예외를 던진다.
@@ -22,6 +33,7 @@ public class PaymentAgencyHandler {
 
     public Payment requestCancellationFromAgency(Payment payment) {
         LocalDateTime canceledAt = LocalDateTime.now();
+
         return payment.cancel(canceledAt);
     }
 }
