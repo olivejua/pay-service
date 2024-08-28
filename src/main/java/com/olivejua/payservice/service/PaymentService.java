@@ -85,7 +85,7 @@ public class PaymentService {
         }
 
         AgencyPayApiResponse agencyApiResponse = paymentAgencyHandler.requestPaymentFromAgency(payment);
-        payment.approve(agencyApiResponse);
+        payment = payment.approve(agencyApiResponse);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
         final PaymentApproveResponse response = PaymentApproveResponse.from(payment);
@@ -123,7 +123,7 @@ public class PaymentService {
         }
 
         AgencyCancelApiResponse agencyApiResponse = paymentAgencyHandler.requestCancellationFromAgency(payment);
-        payment.cancel(agencyApiResponse);
+        payment = payment.cancel(agencyApiResponse);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
 
         final PaymentCancelResponse response = PaymentCancelResponse.from(payment);
