@@ -15,13 +15,13 @@ public class PaybackPolicy {
     private final boolean active;
     //TODO BigDecimal 사용한 이유
     private final BigDecimal rate;
-    private final BigDecimal maxPaybackAmount;
-    private final BigDecimal minPaymentAmount;
+    private final Long maxPaybackAmount;
+    private final Long minPaymentAmount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     @Builder
-    public PaybackPolicy(Long id, String name, LocalDateTime startDate, LocalDateTime endDate, Boolean isActive, BigDecimal rate, BigDecimal maxPaybackAmount, BigDecimal minPaymentAmount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public PaybackPolicy(Long id, String name, LocalDateTime startDate, LocalDateTime endDate, Boolean isActive, BigDecimal rate, Long maxPaybackAmount, Long minPaymentAmount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.startDate = startDate;

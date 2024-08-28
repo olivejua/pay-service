@@ -10,6 +10,5 @@ public class EventQueuePollScheduler {
     private final PaymentJpaRepository paymentJpaRepository;
 
     void pollAllPaymentsWithPending() {
-
     }
 }

@@ -35,10 +35,10 @@ public class PaybackPolicyEntity {
     private BigDecimal rate;
 
     @Column(name = "max_payback_amount")
-    private BigDecimal maxPaybackAmount;
+    private Long maxPaybackAmount;
 
     @Column(name = "min_payment_amount")
-    private BigDecimal minPaymentAmount;
+    private Long minPaymentAmount;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
