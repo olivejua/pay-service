@@ -7,6 +7,7 @@ import com.olivejua.payservice.error.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -32,6 +33,26 @@ public class UserService {
 
         if (!existsActiveUser) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND_OR_WITHDRAWN", "User does not exist or is in a withdrawn state.");
+        }
+    }
+
+    @Transactional
+    public void addCurrentBalance(Long userId, long amount) {
+        User user = getActiveUser(userId);
+
+        if (amount > 0) {
+            UserEntity entity = UserEntity.from(user.addCurrentBalance(amount));
+            userRepository.save(entity);
+        }
+    }
+
+    @Transactional
+    public void subtractCurrentBalance(Long userId, long amount) {
+        User user = getActiveUser(userId);
+
+        if (amount > 0) {
+            UserEntity entity = UserEntity.from(user.subtractCurrentBalance(amount));
+            userRepository.save(entity);
         }
     }
 }

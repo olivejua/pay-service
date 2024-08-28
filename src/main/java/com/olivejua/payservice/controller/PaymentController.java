@@ -19,7 +19,6 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final UserService userService; // 인증기능이 있다면 인증유저를 가지고 있기 때문에 필요없음
 
-    // TODO DB 응답은 일관되게 Payment 컬럼 모두 내보내기
     @PostMapping
     ResponseEntity<PaymentCreateResponse> createPayment(@RequestBody PaymentCreateRequest request) {
         final User activeUser = userService.getActiveUser(request.userId());

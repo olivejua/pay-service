@@ -22,6 +22,7 @@ import java.util.Optional;
 @Service
 public class PaybackService {
     private final PaymentService paymentService;
+    private final UserService userService;
     private final PaybackJpaRepository paybackRepository;
     private final PaybackPolicyJpaRepository paybackPolicyJpaRepository;
     private final PaybackJpaRepository paybackJpaRepository;
@@ -30,7 +31,7 @@ public class PaybackService {
      * TODO 검증 순서도 맞는지 한번 더 검토해보기
      */
     public Optional<PaybackCreateResponse> createPayback(Long paymentId) {
-        Payment payment = paymentService.getById(paymentId);
+        final Payment payment = paymentService.getById(paymentId);
         if (paybackRepository.existsByPaymentId(payment.getId())) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "PAYBACK_ALREADY_EXISTS", "Payback for this payment already exists.");
         }
@@ -46,11 +47,14 @@ public class PaybackService {
 
         Payback payback = Payback.from(policy, payment);
         payback = paybackJpaRepository.save(PaybackEntity.from(payback)).toModel();
+        userService.addCurrentBalance(payment.getUser().getId(), payback.getAmount());
 
         return Optional.of(PaybackCreateResponse.from(payback));
     }
 
     public Optional<PaybackCancelResponse> cancelPayback(Long paymentId) {
+        final Payment payment = paymentService.getById(paymentId);
+
         Optional<Payback> paybackOptional = paybackRepository.findByPaymentId(paymentId).map(PaybackEntity::toModel);
 
         if (paybackOptional.isEmpty()) {
@@ -64,6 +68,7 @@ public class PaybackService {
 
         payback = payback.cancel();
         payback = paybackRepository.save(PaybackEntity.from(payback)).toModel();
+        userService.subtractCurrentBalance(payment.getUser().getId(), payback.getAmount());
 
         return Optional.of(PaybackCancelResponse.from(payback));
     }

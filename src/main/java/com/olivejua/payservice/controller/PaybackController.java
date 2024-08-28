@@ -23,7 +23,6 @@ public class PaybackController {
     private final PaybackService paybackService;
     private final UserService userService; // 인증기능이 있다면 인증유저를 가지고 있기 때문에 필요없음
 
-    //TODO 페이백 요청은 비동기 요청
     @PostMapping
     public ResponseEntity<PaybackCreateResponse> createPayback(@RequestBody PaybackCreateRequest request) {
         userService.validateIfUserIsActive(request.userId());

@@ -34,4 +34,32 @@ public class User {
     public boolean hasActiveStatus() {
         return status == UserStatus.ACTIVE;
     }
+
+    public User addCurrentBalance(long amount) {
+        return User.builder()
+                .id(id)
+                .name(name)
+                .email(email)
+                .status(status)
+                .currentBalance(currentBalance + amount)
+                .accountBank(accountBank)
+                .accountNumber(accountNumber)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
+
+    public User subtractCurrentBalance(long amount) {
+        return User.builder()
+                .id(id)
+                .name(name)
+                .email(email)
+                .status(status)
+                .currentBalance(currentBalance - amount)
+                .accountBank(accountBank)
+                .accountNumber(accountNumber)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
 }

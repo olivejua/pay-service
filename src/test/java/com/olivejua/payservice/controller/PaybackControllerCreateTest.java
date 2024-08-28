@@ -180,6 +180,5 @@ class PaybackControllerCreateTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated());
-        //TODO 유저 잔액 검증하기
     }
 }

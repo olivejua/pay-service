@@ -32,6 +32,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class PaymentService {
+    private final UserService userService;
     private final UserLimitJpaRepository userLimitRepository;
     private final PaymentJpaRepository paymentRepository;
     private final DummyPaymentAgencyHandler paymentAgencyHandler;
@@ -87,6 +88,7 @@ public class PaymentService {
         AgencyPayApiResponse agencyApiResponse = paymentAgencyHandler.requestPaymentFromAgency(payment);
         payment = payment.approve(agencyApiResponse);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
+        userService.addCurrentBalance(payment.getUser().getId(), payment.getAmount());
 
         final PaymentApproveResponse response = PaymentApproveResponse.from(payment);
 
@@ -125,6 +127,7 @@ public class PaymentService {
         AgencyCancelApiResponse agencyApiResponse = paymentAgencyHandler.requestCancellationFromAgency(payment);
         payment = payment.cancel(agencyApiResponse);
         payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
+        userService.subtractCurrentBalance(payment.getUser().getId(), payment.getAmount());
 
         final PaymentCancelResponse response = PaymentCancelResponse.from(payment);
 
