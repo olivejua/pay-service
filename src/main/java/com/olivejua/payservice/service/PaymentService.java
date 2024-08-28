@@ -14,6 +14,8 @@ import com.olivejua.payservice.domain.UserLimit;
 import com.olivejua.payservice.domain.type.PaymentStatus;
 import com.olivejua.payservice.error.ApplicationException;
 import com.olivejua.payservice.queue.EventQueues;
+import com.olivejua.payservice.service.dto.AgencyCancelApiResponse;
+import com.olivejua.payservice.service.dto.AgencyPayApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -74,10 +76,6 @@ public class PaymentService {
 
     /**
      * 결제 대행사 요청 후 처리
-     * - Payment 조회했을 때 존재하지 않으면 예외를 던진다.
-     * - 상태가 대기중이 아니라면 처리하지 않고 종료한다.
-     * - 결제 요청 후 응답이 5초이내 오지 않으면 timeout 예외를 던진다.
-     * - 결제 완료하면 상태 업데이트하고, 응답을 반환한다.
      */
     public Optional<PaymentApproveResponse> approvePayment(Long paymentId) {
         Payment payment = getById(paymentId);
@@ -86,7 +84,10 @@ public class PaymentService {
             return Optional.empty();
         }
 
-        payment = paymentAgencyHandler.requestPaymentFromAgency(payment);
+        AgencyPayApiResponse agencyApiResponse = paymentAgencyHandler.requestPaymentFromAgency(payment);
+        payment.approve(agencyApiResponse);
+        payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
+
         final PaymentApproveResponse response = PaymentApproveResponse.from(payment);
 
         EventQueues.PAYBACK_PROCESSING_QUEUE.add(paymentId);
@@ -121,7 +122,10 @@ public class PaymentService {
             return Optional.empty();
         }
 
-        payment = paymentAgencyHandler.requestCancellationFromAgency(payment);
+        AgencyCancelApiResponse agencyApiResponse = paymentAgencyHandler.requestCancellationFromAgency(payment);
+        payment.cancel(agencyApiResponse);
+        payment = paymentRepository.save(PaymentEntity.from(payment)).toModel();
+
         final PaymentCancelResponse response = PaymentCancelResponse.from(payment);
 
         EventQueues.PAYBACK_CANCELLATION_QUEUE.add(paymentId);

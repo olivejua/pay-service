@@ -2,6 +2,8 @@ package com.olivejua.payservice.domain;
 
 import com.olivejua.payservice.domain.type.PaymentStatus;
 import com.olivejua.payservice.error.ApplicationException;
+import com.olivejua.payservice.service.dto.AgencyCancelApiResponse;
+import com.olivejua.payservice.service.dto.AgencyPayApiResponse;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -44,16 +46,16 @@ public class Payment {
                 .build();
     }
 
-    public Payment approve(String transactionId, LocalDateTime approvedAt) {
+    public Payment approve(AgencyPayApiResponse agencyApiResponse) {
         return Payment.builder()
                 .id(id)
                 .user(user)
                 .amount(amount)
                 .status(PaymentStatus.COMPLETED)
-                .transactionId(transactionId)
+                .transactionId(agencyApiResponse.transactionId())
                 .createdAt(createdAt)
                 .updatedAt(LocalDateTime.now())
-                .approvedAt(approvedAt)
+                .approvedAt(agencyApiResponse.approvedAt())
                 .canceledAt(canceledAt)
                 .build();
     }
@@ -76,7 +78,7 @@ public class Payment {
                 .build();
     }
 
-    public Payment cancel(LocalDateTime canceledAt) {
+    public Payment cancel(AgencyCancelApiResponse agencyApiResponse) {
         return Payment.builder()
                 .id(id)
                 .user(user)
@@ -86,7 +88,7 @@ public class Payment {
                 .createdAt(createdAt)
                 .updatedAt(LocalDateTime.now())
                 .approvedAt(approvedAt)
-                .canceledAt(canceledAt)
+                .canceledAt(agencyApiResponse.canceledAt())
                 .build();
     }
 

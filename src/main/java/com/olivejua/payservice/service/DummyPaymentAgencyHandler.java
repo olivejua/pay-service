@@ -1,6 +1,8 @@
 package com.olivejua.payservice.service;
 
 import com.olivejua.payservice.domain.Payment;
+import com.olivejua.payservice.service.dto.AgencyCancelApiResponse;
+import com.olivejua.payservice.service.dto.AgencyPayApiResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -24,16 +26,16 @@ public class DummyPaymentAgencyHandler {
      * 결제 요청후 응답이 5초이내 오지 않으면 timeout 예외를 던진다.
      * TODO Response 별도 생성할지는 고려해보기
      */
-    public Payment requestPaymentFromAgency(Payment payment) {
+    public AgencyPayApiResponse requestPaymentFromAgency(Payment payment) {
         String transactionId = String.valueOf(UUID.randomUUID().getLeastSignificantBits());
         LocalDateTime approvedAt = LocalDateTime.now();
 
-        return payment.approve(transactionId, approvedAt);
+        return new AgencyPayApiResponse(transactionId, approvedAt);
     }
 
-    public Payment requestCancellationFromAgency(Payment payment) {
+    public AgencyCancelApiResponse requestCancellationFromAgency(Payment payment) {
         LocalDateTime canceledAt = LocalDateTime.now();
 
-        return payment.cancel(canceledAt);
+        return new AgencyCancelApiResponse(canceledAt);
     }
 }
