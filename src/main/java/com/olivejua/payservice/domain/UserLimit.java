@@ -32,7 +32,6 @@ public class UserLimit {
         this.updatedAt = updatedAt;
     }
 
-    //TODO Default Setting 다시한번 검토해보기
     public static UserLimit createDefaultSettings(User user) {
         return UserLimit.builder()
                 .user(user)

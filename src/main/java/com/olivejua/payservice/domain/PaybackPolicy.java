@@ -13,7 +13,6 @@ public class PaybackPolicy {
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final boolean active;
-    //TODO BigDecimal 사용한 이유
     private final BigDecimal rate;
     private final Long maxPaybackAmount;
     private final Long minPaymentAmount;

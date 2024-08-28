@@ -30,7 +30,7 @@ public class PaybackService {
     private final PaybackJpaRepository paybackJpaRepository;
 
     /**
-     * TODO 검증 순서도 맞는지 한번 더 검토해보기
+     * 페이백 지급
      */
     public Optional<PaybackCreateResponse> createPayback(Long paymentId) {
         final Payment payment = paymentService.getById(paymentId);
@@ -54,6 +54,9 @@ public class PaybackService {
         return Optional.of(PaybackCreateResponse.from(payback));
     }
 
+    /**
+     * 페이백 회수
+     */
     public Optional<PaybackCancelResponse> cancelPayback(Long paymentId) {
         final Payment payment = paymentService.getById(paymentId);
 

@@ -15,11 +15,6 @@ public class EventQueueScheduler {
     private final PaymentService paymentService;
     private final PaybackService paybackService;
 
-    /**
-     * TODO payment에서 하나 가져와서 실행 (하나씩 하지 않고 배치로 동시실행하면 성능을 높일 수 있다.)
-     * TODO 실패케이스에 대한 대비를 해야한다. FAIL LOG
-     */
-
     @Scheduled(fixedDelay = 1000)
     void pollAllPaymentsWithPending() {
         if (EventQueues.PAYMENT_PROCESSING_QUEUE.isEmpty()) {

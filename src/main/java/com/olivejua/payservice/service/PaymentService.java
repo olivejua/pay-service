@@ -61,7 +61,7 @@ public class PaymentService {
                 .orElse(UserLimit.createDefaultSettings(requestUser));
 
         final LocalDate today = requestDateTime.toLocalDate();
-        final List<Payment> paymentsForThisMonth = findMonthlyPayments(requestUser, today); // TODO 캐시 고려
+        final List<Payment> paymentsForThisMonth = findMonthlyPayments(requestUser, today);
 
         userLimit.validateIfPaymentAmountDoesNotExceed(amount, paymentsForThisMonth);
     }

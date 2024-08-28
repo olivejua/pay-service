@@ -24,7 +24,6 @@ public class DummyPaymentAgencyHandler {
 
     /**
      * 결제 요청후 응답이 5초이내 오지 않으면 timeout 예외를 던진다.
-     * TODO Response 별도 생성할지는 고려해보기
      */
     public AgencyPayApiResponse requestPaymentFromAgency(Payment payment) {
         String transactionId = String.valueOf(UUID.randomUUID().getLeastSignificantBits());

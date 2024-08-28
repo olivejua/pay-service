@@ -154,7 +154,5 @@ class PaybackControllerCancelTest {
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.updatedAt").exists())
                 .andExpect(jsonPath("$.canceledAt").exists());
-
-        //TODO 유저 잔액 검증하기
     }
 }

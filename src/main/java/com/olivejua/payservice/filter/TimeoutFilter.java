@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.concurrent.*;
 
 public class TimeoutFilter implements Filter {
-    //TODO 스레드풀 개수
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Override
